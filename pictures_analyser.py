@@ -14,6 +14,8 @@ print(cv2.__version__)
 
 #Show a picture
 image = cv2.imread('E:/SkinCancer/HAM10000_images_part_1/ISIC_0024319.jpg')
+# image = cv2.imread('E:/SkinCancer/HAM10000_images_part_1/ISIC_0024316.jpg')
+imageForCanny = cv2.imread('E:/SkinCancer/HAM10000_images_part_1/ISIC_0024319.jpg')
 height, width, channels = image.shape
 
 #Print size of the image
@@ -38,6 +40,9 @@ second_gray = cv2.cvtColor(threshold_image, cv2.COLOR_BGR2GRAY)
 # blurred = cv2.medianBlur(second_gray, 5)
 # blurred = cv2.GaussianBlur(second_gray, (5, 5), 0)
 
+plt.hist(image.ravel(), 256, [0,256])
+# plt.show()
+
 #Count black pixels
 numbers_of_pixels = 0
 
@@ -49,29 +54,34 @@ for coord_h in range(height):
 			numbers_of_pixels += 1
 			# second_gray[coord_h, coord_w] = 0
 		else:
-			second_gray[coord_h, coord_w] = 175
+			second_gray[coord_h, coord_w] = 255
 
 print(numbers_of_pixels)
 
 blurred = cv2.GaussianBlur(second_gray, (5, 5), 0)
 # blurred = cv2.blur(second_gray, (5, 5))
 
-# contours, hierarchy = cv2.findContours(second_gray.copy(), cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
 # cv2.drawContours(second_gray, contours, -1, (255, 0, 0), 3, cv2.LINE_AA, hierarchy, 1)
-# ViewImage(blurred, "HZ")
+# ViewImage(second_gray, "HZ")
 
 edges = cv2.Canny(blurred, 50, 200, 255)
 
-# ViewImage(edges, "Edges")
-contours, hierarchy = cv2.findContours(edges, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+contours_canny, hierarchy_canny = cv2.findContours(edges, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+for contour in contours_canny:
+	if cv2.contourArea(contour) > 15:
+		cv2.drawContours(imageForCanny, contour, -1, (0, 255, 0), 2)
+
+ViewImage(imageForCanny, "Contours from Canny")
+
+contours, hierarchy = cv2.findContours(second_gray, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
 
 for contour in contours:
-	if cv2.contourArea(contour) > 15:
+	if cv2.contourArea(contour) > 200:
 		cv2.drawContours(image, contour, -1, (0, 255, 0), 2)
 
-ViewImage(image, "Contours")
+# cv2.drawContours(image, contours, -1, (0, 255, 0), 2)
 
-
+ViewImage(image, "Main contours")
 
 # plt.subplot(121), plt.imshow(second_gray, cmap = 'gray')
 # plt.title('Original Image'), plt.xticks([]), plt.yticks([])
